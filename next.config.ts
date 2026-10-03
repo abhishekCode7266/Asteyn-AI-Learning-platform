@@ -1,6 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'export', // GitHub Pages static export ke liye zaroori hai
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
@@ -19,8 +20,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  basePath: process.env.GITHUB_ACTIONS ? '/EduBridge' : '',
-  assetPrefix: process.env.GITHUB_ACTIONS ? '/EduBridge' : '',
+  // Aapki repo ka exact naam yahan update kar diya gaya hai
+  basePath: process.env.GITHUB_ACTIONS ? '/Asteyn-AI-Learning-platform' : '',
+  assetPrefix: process.env.GITHUB_ACTIONS ? '/Asteyn-AI-Learning-platform' : '',
   trailingSlash: false,
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
@@ -32,4 +34,5 @@ const nextConfig: NextConfig = {
     return config;
   },
 };
+
 export default nextConfig;
