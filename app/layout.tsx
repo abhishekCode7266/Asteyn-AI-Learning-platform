@@ -4,8 +4,8 @@ import { Providers } from './providers';
 import DevTools from '@/components/DevTools';
 
 export const metadata: Metadata = {
-  title: 'EduBridge AI Learning Platform',
-  description: 'AI-driven, personalized learning platform identifying weak concepts and providing multilingual AI doubt solving.',
+  title: 'Astryn Learning Platform',
+  description: 'AI-driven, personalized learning universe identifying weak concepts and providing multilingual AI doubt solving and comprehensive 1000+ digital library.',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

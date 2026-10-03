@@ -11,12 +11,34 @@
         "hasPaid": { "type": "boolean" }
       },
       "required": ["name", "email", "role", "hasPaid"]
+    },
+    "BookReview": {
+      "title": "BookReview",
+      "description": "A student rating and review for a library book",
+      "type": "object",
+      "properties": {
+        "bookId": { "type": "string" },
+        "bookTitle": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userRole": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "reviewText": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" },
+        "verifiedReader": { "type": "boolean" }
+      },
+      "required": ["bookId", "userId", "userName", "rating", "reviewText"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Stores user profiles."
+    },
+    "/book_reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/BookReview" },
+      "description": "Stores student ratings and reviews for library books."
     }
   }
 }

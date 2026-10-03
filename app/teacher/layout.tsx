@@ -23,7 +23,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
             <BookOpen size={20} />
           </div>
-          <span className="text-xl font-bold text-slate-900">EduBridge</span>
+          <span className="text-xl font-bold text-slate-900">Astryn</span>
           <span className="ml-2 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">Teacher</span>
         </div>
         

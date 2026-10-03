@@ -2,7 +2,6 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'export',
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -22,7 +21,7 @@ const nextConfig: NextConfig = {
   },
   basePath: process.env.GITHUB_ACTIONS ? '/EduBridge' : '',
   assetPrefix: process.env.GITHUB_ACTIONS ? '/EduBridge' : '',
-  trailingSlash: true,
+  trailingSlash: false,
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
     if (dev && process.env.DISABLE_HMR === 'true') {

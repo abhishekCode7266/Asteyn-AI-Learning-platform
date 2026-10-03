@@ -14,7 +14,7 @@ export default function FeedbackWidget({ context = "Experience" }: { context?: s
       <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-100 flex flex-col items-center justify-center text-center w-full max-w-md mx-auto mt-8">
         <CheckCircle2 className="text-emerald-500 mb-2" size={32} />
         <h3 className="font-bold text-emerald-900">Thank you for your feedback!</h3>
-        <p className="text-emerald-700 text-sm mt-1">Your rating helps us improve EduBridge AI.</p>
+        <p className="text-emerald-700 text-sm mt-1">Your rating helps us improve Astryn AI.</p>
       </div>
     );
   }

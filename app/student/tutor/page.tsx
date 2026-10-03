@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Globe, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Loader2, Globe, Sparkles, Play, BookOpen } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import LockedFeature from '@/components/LockedFeature';
+import EducationalVideoPlayerModal from '@/components/EducationalVideoPlayerModal';
+import { EducationalVideo, searchEducationalVideos } from '@/lib/video-recommendations';
 
 type Message = {
   id: string;
@@ -17,12 +19,16 @@ export default function AITutorPage() {
     {
       id: '1',
       role: 'assistant',
-      content: "Hi there! I'm your EduBridge AI Tutor. I noticed you've been working on Algebra recently. How can I help you today?"
+      content: "Hi there! I'm your Astryn AI Tutor. I noticed you've been working on Algebra recently. How can I help you today?"
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Connected Video Player Modal State
+  const [activeVideo, setActiveVideo] = useState<EducationalVideo | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,7 +84,7 @@ export default function AITutorPage() {
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              EduBridge AI Tutor
+              Astryn AI Tutor
               <span className="flex items-center gap-1 rounded-full bg-slate-200/50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
                 <Sparkles size={10} className="text-indigo-500" />
                 Powered by Gemini
@@ -107,9 +113,29 @@ export default function AITutorPage() {
             <div className={`max-w-[80%] rounded-2xl px-5 py-3 ${
               msg.role === 'user' 
                 ? 'bg-indigo-600 text-white rounded-tr-none' 
-                : 'bg-slate-100 text-slate-800 rounded-tl-none'
+                : 'bg-slate-100 text-slate-800 rounded-tl-none space-y-2.5'
             }`}>
               <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+
+              {msg.role === 'assistant' && msg.id !== '1' && (
+                <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span className="text-[11px] text-slate-500 font-medium">Concept Video Lecture:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const vids = searchEducationalVideos(msg.content.slice(0, 80));
+                      if (vids.length > 0) {
+                        setActiveVideo(vids[0]);
+                        setIsVideoModalOpen(true);
+                      }
+                    }}
+                    className="text-xs font-bold text-red-600 hover:text-red-700 bg-white hover:bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                  >
+                    <Play size={11} className="fill-red-600 text-red-600" />
+                    <span>Watch Connected Video</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -145,6 +171,16 @@ export default function AITutorPage() {
           </button>
         </form>
       </div>
+
+      {/* Embedded Educational Video Player Modal */}
+      <EducationalVideoPlayerModal
+        video={activeVideo}
+        isOpen={isVideoModalOpen}
+        onClose={() => {
+          setIsVideoModalOpen(false);
+          setActiveVideo(null);
+        }}
+      />
     </div>
   );
 }

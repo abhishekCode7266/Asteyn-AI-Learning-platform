@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { BrainCircuit, Loader2, CheckCircle2, XCircle, ArrowRight } from "lucide-react";
+import { BrainCircuit, Loader2, CheckCircle2, XCircle, ArrowRight, Play } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import LockedFeature from "@/components/LockedFeature";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import EducationalVideoPlayerModal from "@/components/EducationalVideoPlayerModal";
+import { EducationalVideo, getVideosForCategory } from "@/lib/video-recommendations";
 
 type Question = {
   question: string;
@@ -25,6 +27,9 @@ export default function AIQuizGenerator() {
   const [score, setScore] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   
+  const [selectedVideo, setSelectedVideo] = useState<EducationalVideo | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   const [error, setError] = useState("");
 
   if (user && !user.hasPaid) {
@@ -149,7 +154,7 @@ export default function AIQuizGenerator() {
         <div className="rounded-2xl border bg-white p-16 shadow-sm flex flex-col items-center justify-center space-y-4">
           <Loader2 className="animate-spin text-indigo-600" size={48} />
           <h2 className="text-xl font-bold text-slate-900">Crafting your custom quiz...</h2>
-          <p className="text-slate-500">EduBridge AI is generating questions about &quot;{topic}&quot;.</p>
+          <p className="text-slate-500">Astryn AI is generating questions about &quot;{topic}&quot;.</p>
         </div>
       )}
 
@@ -203,9 +208,25 @@ export default function AIQuizGenerator() {
           </div>
 
           {showExplanation && (
-            <div className="rounded-xl bg-slate-50 p-5 mb-8 border border-slate-200">
-              <h3 className="text-sm font-bold text-slate-900 mb-2">AI Explanation</h3>
-              <p className="text-sm text-slate-700">{questions[currentQuestionIndex].explanation}</p>
+            <div className="rounded-2xl bg-slate-50 p-5 mb-8 border border-slate-200 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-slate-900">AI Explanation</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const vids = getVideosForCategory(topic);
+                    if (vids.length > 0) {
+                      setSelectedVideo(vids[0]);
+                      setIsVideoModalOpen(true);
+                    }
+                  }}
+                  className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Play size={12} className="fill-red-600 text-red-600" />
+                  <span>Watch Video Lecture</span>
+                </button>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed">{questions[currentQuestionIndex].explanation}</p>
             </div>
           )}
 
@@ -236,11 +257,39 @@ export default function AIQuizGenerator() {
             <CheckCircle2 size={40} />
           </div>
           <h2 className="text-3xl font-bold text-slate-900 mb-2">Quiz Complete!</h2>
-          <p className="text-lg text-slate-600 mb-8">You scored <span className="font-bold text-indigo-600">{score}</span> out of {questions.length} on {topic}.</p>
+          <p className="text-lg text-slate-600 mb-6">You scored <span className="font-bold text-indigo-600">{score}</span> out of {questions.length} on {topic}.</p>
           
+          {/* Connected YouTube Video Recommendation Box */}
+          <div className="max-w-md mx-auto mb-8 bg-gradient-to-r from-red-50 to-slate-50 border border-red-200/80 rounded-2xl p-4 text-left flex items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Play size={16} className="fill-white translate-x-0.5" />
+              </span>
+              <div>
+                <span className="text-[10px] font-black uppercase text-red-600 block">Master this Concept</span>
+                <span className="text-xs font-bold text-slate-900 block truncate">YouTube Video Lectures on {topic}</span>
+                <span className="text-[11px] text-slate-500">Verified educational walkthroughs &amp; notes</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const vids = getVideosForCategory(topic);
+                if (vids.length > 0) {
+                  setSelectedVideo(vids[0]);
+                  setIsVideoModalOpen(true);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl shrink-0 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
+            >
+              <Play size={12} className="fill-white" />
+              <span>Watch</span>
+            </button>
+          </div>
+
           <button
             onClick={() => setStep('setup')}
-            className="inline-flex justify-center items-center gap-2 rounded-lg bg-indigo-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
+            className="inline-flex justify-center items-center gap-2 rounded-lg bg-indigo-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors cursor-pointer"
           >
             Generate Another Quiz
           </button>
@@ -250,6 +299,16 @@ export default function AIQuizGenerator() {
           </div>
         </div>
       )}
+
+      {/* Embedded Educational Video Player Modal */}
+      <EducationalVideoPlayerModal
+        video={selectedVideo}
+        isOpen={isVideoModalOpen}
+        onClose={() => {
+          setIsVideoModalOpen(false);
+          setSelectedVideo(null);
+        }}
+      />
     </div>
   );
 }

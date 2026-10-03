@@ -2,21 +2,23 @@
 
 import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, Loader2, Zap, KeyRound, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, DEVELOPER_EMAIL } from "@/context/AuthContext";
+import DeveloperBypassModal from "@/components/DeveloperBypassModal";
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get('role') || 'student';
-  const [role, setRole] = useState(defaultRole);
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, register, user, isLoading } = useAuth();
+  const [isBypassModalOpen, setIsBypassModalOpen] = useState(false);
+
+  const { login, developerBypass, user, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -32,131 +34,139 @@ function LoginContent() {
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.message || "Failed to login. Please try again or create an account.");
+      setError(err?.message || "Failed to login. If you are new, please register first!");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDevLogin = async () => {
-    setError("");
-    setIsSubmitting(true);
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('dev_bypass', 'true');
-        localStorage.removeItem('teacher_bypass');
-      }
-      // Force reload the page so the AuthContext picks up the new local storage value
-      window.location.href = '/student';
-    } catch (err: any) {
-      setError(err.message || "Failed to create dev account.");
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleTeacherDevLogin = async () => {
-    setError("");
-    setIsSubmitting(true);
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('teacher_bypass', 'true');
-        localStorage.removeItem('dev_bypass');
-      }
-      // Force reload the page so the AuthContext picks up the new local storage value
-      window.location.href = '/teacher';
-    } catch (err: any) {
-      setError(err.message || "Failed to create teacher dev account.");
-      setIsSubmitting(false);
-    }
+  const handleInstantDevLogin = () => {
+    developerBypass("student", true, DEVELOPER_EMAIL);
   };
 
   return (
-    <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-10 shadow-xl">
-      <div className="flex flex-col items-center">
-        <Link href="/" className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white mb-4">
-          <BookOpen size={28} />
+    <div className="w-full max-w-md space-y-6 rounded-3xl bg-white p-8 md:p-10 shadow-2xl border border-slate-200">
+      {/* Top Banner recommending Registration First */}
+      <div className="bg-purple-50 border border-purple-200 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <Sparkles size={16} className="text-[#5f259f] shrink-0" />
+          <span className="text-[#5f259f] font-bold">New to Astryn?</span>
+        </div>
+        <Link 
+          href="/register" 
+          className="bg-[#5f259f] hover:bg-[#4a1c7c] text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+        >
+          <span>Register First</span>
+          <ArrowRight size={12} />
         </Link>
-        <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-slate-900">
-          Sign in to EduBridge
+      </div>
+
+      <div className="flex flex-col items-center text-center">
+        <Link href="/" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5f259f] text-white mb-3 shadow-md hover:bg-[#4a1c7c] transition-colors">
+          <BookOpen size={26} />
+        </Link>
+        <h2 className="text-2xl font-black tracking-tight text-slate-900">
+          Sign In to Astryn
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
-          Welcome back! Please enter your details.
+        <p className="mt-1 text-xs text-slate-600">
+          Access your courses, 50-subject books library, and AI tutor.
         </p>
       </div>
 
-      <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+      <form className="space-y-4" onSubmit={handleLogin}>
         {error && (
-          <div className="rounded-md bg-rose-50 p-4">
-            <p className="text-sm font-medium text-rose-800">{error}</p>
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs font-medium text-rose-800">
+            {error}
           </div>
         )}
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium leading-6 text-slate-900">
-              Email address
-            </label>
-            <div className="mt-2">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-md border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium leading-6 text-slate-900">
-              Password
-            </label>
-            <div className="mt-2">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-md border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
+        <div>
+          <label htmlFor="loginEmail" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+            Email Address
+          </label>
+          <input
+            id="loginEmail"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 text-sm focus:border-[#5f259f] focus:ring-2 focus:ring-[#5f259f]/20 focus:outline-none"
+            placeholder="you@example.com"
+          />
         </div>
 
         <div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex w-full justify-center items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-70"
-          >
-            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : null}
-            Sign in
-          </button>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="loginPass" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Password
+            </label>
+          </div>
+          <input
+            id="loginPass"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 text-sm focus:border-[#5f259f] focus:ring-2 focus:ring-[#5f259f]/20 focus:outline-none"
+            placeholder="••••••••"
+          />
         </div>
 
-        <div className="relative">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-[#5f259f] hover:bg-[#4a1c7c] text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : null}
+          <span>Log In</span>
+        </button>
+
+        <div className="relative py-2">
           <div className="absolute inset-0 flex items-center" aria-hidden="true">
             <div className="w-full border-t border-slate-200" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-2 text-sm text-slate-500">or</span>
+            <span className="bg-white px-3 text-xs text-slate-400 uppercase font-medium">Or</span>
           </div>
         </div>
+
+        {/* Master Developer Bypass Button */}
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleInstantDevLogin}
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
+          >
+            <Zap size={14} className="fill-slate-950" />
+            <span>Developer One-Click Bypass (Abhishek)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsBypassModalOpen(true)}
+            className="w-full border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <KeyRound size={14} className="text-slate-500" />
+            <span>Enter Master Passcode / Grant Free Access</span>
+          </button>
+        </div>
         
-        <p className="text-center text-sm text-slate-600">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
-            Sign up and Join
+        <p className="text-center text-xs text-slate-600 pt-3 border-t border-slate-100">
+          Don&apos;t have an account yet?{' '}
+          <Link href="/register" className="font-bold text-[#5f259f] hover:underline">
+            Register for 7-Day Free Trial
           </Link>
         </p>
       </form>
+
+      <DeveloperBypassModal 
+        isOpen={isBypassModalOpen} 
+        onClose={() => setIsBypassModalOpen(false)} 
+      />
     </div>
   );
 }
@@ -164,7 +174,7 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-      <Suspense fallback={<div className="flex h-32 w-full items-center justify-center"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>}>
+      <Suspense fallback={<div className="flex h-32 w-full items-center justify-center"><Loader2 className="animate-spin text-[#5f259f]" size={32} /></div>}>
         <LoginContent />
       </Suspense>
     </div>

@@ -1,198 +1,185 @@
 "use client";
 
 import { useState } from "react";
-import { QrCode, Upload, CheckCircle2, AlertCircle, Copy, Check } from "lucide-react";
+import { Check, Sparkles, Shield, ArrowLeft, Calendar, Clock, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import UpiPaymentScanner, { Plan } from "@/components/UpiPaymentScanner";
 
-const UPI_IDS = [
-  "merchant-1@ybl",
-  "payment-2@icici",
-  "fee-3@okhdfcbank",
-  "edubridge-4@sbi",
-  "support-5@paytm"
-];
-
-const PLANS = [
-  { id: "1m", name: "1 Month", price: 199, desc: "Perfect for trying out EduBridge Pro." },
-  { id: "3m", name: "3 Months", price: 299, desc: "Best value for a complete semester." },
-  { id: "6m", name: "6 Months", price: 499, desc: "Long-term commitment for serious learners." },
+const PLANS: Plan[] = [
+  { 
+    id: "1m", 
+    name: "1 Month Pro", 
+    price: 199, 
+    duration: "1 Month (30 Days)", 
+    desc: "1 Month complete platform access for students & teachers with book and course uploads.",
+    features: [
+      "Access to all 1st to 12th subjects & syllabus",
+      "Full 50-Subject Digital Books Library",
+      "Multilingual AI Tutor 24/7",
+      "Upload Books & Create Courses",
+      "Game Center Levels 1-100"
+    ]
+  },
+  { 
+    id: "3m", 
+    name: "3 Months Semester Pass", 
+    price: 299, 
+    duration: "3 Months (90 Days)", 
+    desc: "Most popular choice for semester exams and continuous learning.",
+    features: [
+      "Everything in 1 Month Plan",
+      "90 Days extended platform validity",
+      "Graduation Streams (BA, BSc, BCom, BTech)",
+      "Upload Unlimited Study Material & Books",
+      "Game Center Levels 1-300",
+      "Offline Study Mode & Doubt Solver"
+    ]
+  },
+  { 
+    id: "6m", 
+    name: "6 Months Master Pro", 
+    price: 499, 
+    duration: "6 Months (180 Days)", 
+    desc: "Best value for competitive exams (NEET, JEE, UPSC, SSC) & full course publishing.",
+    features: [
+      "Everything in 3 Months Plan",
+      "180 Days maximum validity",
+      "All 1 to 500 Game Center Levels",
+      "Full Educator Course Publishing Studio",
+      "Competitive Exam Special Notes & Books",
+      "Priority AI Response & Live Teacher Insights"
+    ]
+  },
 ];
 
 export default function UpgradePage() {
   const { user } = useAuth();
-  const [utrNumber, setUtrNumber] = useState("");
-  const [selectedPlanId, setSelectedPlanId] = useState("1m");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
+  const [selectedPlanId, setSelectedPlanId] = useState("3m");
 
-  const selectedPlan = PLANS.find(p => p.id === selectedPlanId) || PLANS[0];
-
-  const copyToClipboard = (text: string) => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      alert(`Copied: ${text}`);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (utrNumber.trim().length < 12) {
-      setError("Please enter a valid 12-digit UTR / Reference Number");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError("");
-
-    try {
-      if (user?.id && !user.id.startsWith("dev-")) {
-        // Real user: Save to firestore for teacher to verify
-        await addDoc(collection(db, "payment_requests"), {
-          userId: user.id,
-          userName: user.name,
-          email: user.email,
-          utrNumber: utrNumber.trim(),
-          planId: selectedPlan.id,
-          planName: selectedPlan.name,
-          amount: selectedPlan.price,
-          status: "pending",
-          timestamp: serverTimestamp(),
-        });
-      } else {
-        // Developer Bypass Simulation
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to submit request.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white rounded-2xl border border-emerald-200 p-10 text-center shadow-sm">
-        <CheckCircle2 size={64} className="text-emerald-500 mb-6" />
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Payment Verification Pending</h2>
-        <p className="text-slate-600 max-w-md">
-          Thank you! We have received your UTR number: <span className="font-semibold">{utrNumber}</span> for the <span className="font-semibold">{selectedPlan.name}</span> plan. 
-          Your teacher will verify the payment and upgrade your account to Pro shortly.
-        </p>
-      </div>
-    );
-  }
+  const selectedPlan = PLANS.find(p => p.id === selectedPlanId) || PLANS[1];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Upgrade to EduBridge AI Pro</h1>
-        <p className="text-slate-500 mt-1">Select a plan and pay directly via UPI to unlock unlimited learning.</p>
-      </div>
-      
-      {/* Plan Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {PLANS.map((plan) => (
-          <div 
-            key={plan.id}
-            onClick={() => setSelectedPlanId(plan.id)}
-            className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
-              selectedPlanId === plan.id 
-                ? "border-indigo-600 bg-indigo-50" 
-                : "border-slate-200 bg-white hover:border-slate-300"
-            }`}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <h3 className={`font-bold ${selectedPlanId === plan.id ? "text-indigo-900" : "text-slate-900"}`}>
-                {plan.name}
-              </h3>
-              {selectedPlanId === plan.id && <Check size={18} className="text-indigo-600" />}
+    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+      {/* Top Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link 
+              href="/student" 
+              className="text-xs font-semibold text-slate-500 hover:text-[#5f259f] flex items-center gap-1"
+            >
+              <ArrowLeft size={14} /> Back to Dashboard
+            </Link>
+          </div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <span>Astryn Platform Subscription</span>
+            <Sparkles size={24} className="text-amber-500 fill-amber-400" />
+          </h1>
+          <p className="text-slate-600 text-sm mt-1">
+            Official PhonePe Payment Stand: Pay ₹199 (1M), ₹299 (3M), or ₹499 (6M) to unlock full learning access, book library, and course upload.
+          </p>
+        </div>
+
+        {user?.hasPaid ? (
+          <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs font-bold shadow-xs">
+            <Shield size={18} className="text-emerald-600" />
+            <div>
+              <div>Active Subscription ({user.subscriptionPlan || "Pro"})</div>
+              {user.subscriptionExpiresAt && (
+                <div className="text-[11px] text-emerald-700 font-normal">
+                  Expires: {new Date(user.subscriptionExpiresAt).toLocaleDateString()} ({user.daysRemaining || 30} days left)
+                </div>
+              )}
             </div>
-            <p className="text-2xl font-black text-slate-900 mb-2">₹{plan.price}</p>
-            <p className="text-xs text-slate-500">{plan.desc}</p>
           </div>
-        ))}
+        ) : (
+          <div className="bg-amber-50 border border-amber-300 text-amber-900 px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2">
+            <Clock size={16} className="text-amber-600" />
+            <span>Select a plan below to activate access</span>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Column - Payment Details */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <div className="flex items-center justify-between border-b pb-4">
-            <h2 className="font-bold text-slate-900">Total Amount</h2>
-            <span className="text-2xl font-black text-indigo-600">₹{selectedPlan.price}</span>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">Scan to Pay</h3>
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl flex flex-col items-center justify-center h-64 mb-4">
-              <QrCode size={100} className="text-slate-400 mb-4" />
-              <p className="text-sm text-slate-500 text-center px-4">
-                (Scan this QR code using any UPI app like GPay, PhonePe, or Paytm)
+      {/* Subscription Extension Banner if already active */}
+      {user?.hasPaid && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#5f259f] text-white flex items-center justify-center font-bold">
+              <RefreshCw size={18} />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-slate-900 text-sm">Need to extend your subscription? (तारीख बढ़ाएं)</h4>
+              <p className="text-slate-600">
+                You can add 1, 3, or 6 months to your existing subscription anytime. The new days will be added to your current validity!
               </p>
             </div>
-            
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">Or send money to any of these UPI IDs:</h3>
-            <ul className="space-y-2">
-              {UPI_IDS.map((upi, index) => (
-                <li key={index} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <span className="text-slate-700 font-medium font-mono text-sm">{upi}</span>
-                  <button 
-                    onClick={() => copyToClipboard(upi)}
-                    className="text-indigo-600 hover:text-indigo-800 p-1 flex items-center gap-1 text-xs font-bold"
-                  >
-                    <Copy size={14} /> Copy
-                  </button>
-                </li>
-              ))}
-            </ul>
           </div>
+          <span className="bg-white border border-indigo-200 text-[#5f259f] font-bold px-3 py-1 rounded-xl">
+            Choose Plan Below &amp; Pay
+          </span>
         </div>
+      )}
 
-        {/* Right Column - Submission Form */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-fit">
-          <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <Upload size={20} className="text-indigo-600" />
-            Submit Payment Details
-          </h2>
-          <p className="text-sm text-slate-600 mb-6">
-            After making the payment of ₹{selectedPlan.price} via QR or UPI, please enter the 12-digit UTR / Transaction Reference Number below.
-          </p>
+      {/* Plan Selection Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {PLANS.map((plan) => {
+          const isSelected = selectedPlanId === plan.id;
+          const isPopular = plan.id === "3m";
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-rose-50 text-rose-600 text-sm p-3 rounded-lg flex items-start gap-2 border border-rose-100">
-                <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                <p>{error}</p>
-              </div>
-            )}
-            
-            <div>
-              <label htmlFor="utr" className="block text-sm font-medium text-slate-700 mb-1">
-                12-digit UTR / Reference No.
-              </label>
-              <input
-                id="utr"
-                type="text"
-                placeholder="e.g. 123456789012"
-                value={utrNumber}
-                onChange={(e) => setUtrNumber(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={isSubmitting || utrNumber.length < 12}
-              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-500 transition-colors disabled:opacity-50"
+          return (
+            <div 
+              key={plan.id}
+              onClick={() => setSelectedPlanId(plan.id)}
+              className={`relative cursor-pointer rounded-3xl p-6 transition-all border-2 flex flex-col justify-between ${
+                isSelected 
+                  ? "border-[#5f259f] bg-purple-50/40 shadow-lg ring-2 ring-[#5f259f]/20" 
+                  : "border-slate-200 bg-white hover:border-purple-300 shadow-sm"
+              }`}
             >
-              {isSubmitting ? "Submitting..." : "Verify Payment & Upgrade"}
-            </button>
-          </form>
-        </div>
+              {isPopular && (
+                <span className="absolute -top-3 right-6 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-[11px] px-3 py-0.5 rounded-full shadow-sm uppercase tracking-wider">
+                  Most Popular
+                </span>
+              )}
+
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className={`font-bold text-lg ${isSelected ? "text-[#5f259f]" : "text-slate-900"}`}>
+                    {plan.name}
+                  </h3>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                    isSelected ? "bg-[#5f259f] border-[#5f259f] text-white" : "border-slate-300"
+                  }`}>
+                    {isSelected && <Check size={12} strokeWidth={3} />}
+                  </div>
+                </div>
+
+                <div className="my-3 flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-slate-900">₹{plan.price}</span>
+                  <span className="text-xs text-slate-500 font-medium">/ {plan.duration}</span>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">{plan.desc}</p>
+              </div>
+
+              {/* Plan Features List */}
+              <div className="pt-4 border-t border-slate-200/80 space-y-2">
+                {plan.features?.map((feat, fIdx) => (
+                  <div key={fIdx} className="flex items-start gap-2 text-xs text-slate-700">
+                    <Check size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* The Official PhonePe Payment Scanner Card */}
+      <div className="pt-4">
+        <UpiPaymentScanner plan={selectedPlan} />
       </div>
     </div>
   );

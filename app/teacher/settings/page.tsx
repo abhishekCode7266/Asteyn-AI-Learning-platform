@@ -10,7 +10,7 @@ export default function TeacherSettings() {
   
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [school, setSchool] = useState("EduBridge Academy");
+  const [school, setSchool] = useState("Astryn Academy");
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 

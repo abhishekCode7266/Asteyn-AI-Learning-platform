@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
-    const prompt = `You are an expert AI teacher powering the EduBridge platform. 
+    const prompt = `You are an expert AI teacher powering the Astryn platform. 
 Generate a short, engaging, and personalized learning lesson about "${topic}".
 Difficulty level: ${difficulty || 'Beginner'}.
 Language: ${language || 'English'}.
@@ -33,7 +33,7 @@ Please format the response strictly in Markdown:
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.8-flash",
       contents: prompt,
     });
 

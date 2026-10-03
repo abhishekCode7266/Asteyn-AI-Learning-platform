@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
-    const systemPrompt = `You are the EduBridge AI Tutor, a helpful, patient, and encouraging tutor for students in rural/low-income areas.
+    const systemPrompt = `You are the Astryn AI Tutor, a helpful, patient, and encouraging tutor for students in rural/low-income areas.
     - Explain concepts in very simple language.
     - Provide step-by-step explanations.
     - Give relatable examples.
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     - If the user asks in Hindi or Hinglish, respond appropriately in that language.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.8-flash",
       contents: `${systemPrompt}\n\nStudent asks: ${message}`,
     });
 
